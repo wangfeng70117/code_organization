@@ -139,10 +139,10 @@ def move(direction: ti.i32):
 while window.running:
     frame_id += 1
     frame_id = frame_id % 256
-    if window.is_pressed(ti.ui.LEFT, 't'): move(0)
-    if window.is_pressed(ti.ui.RIGHT, 'f'): move(1)
-    if window.is_pressed(ti.ui.UP, 'g'): move(2)
-    if window.is_pressed(ti.ui.DOWN, 'h'): move(3)
+    if window.is_pressed(ti.ui.UP, 't'): move(0)
+    if window.is_pressed(ti.ui.LEFT, 'f'): move(1)
+    if window.is_pressed(ti.ui.DOWN, 'g'): move(2)
+    if window.is_pressed(ti.ui.RIGHT, 'h'): move(3)
     camera.track_user_inputs(window, movement_speed=0.03, hold_key=ti.ui.RMB)
     scene.set_camera(camera)
 

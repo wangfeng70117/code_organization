@@ -118,7 +118,7 @@ normal_indices：顶点法向量索引一维数组，每三个值表示一个三
 
 返回最短距离以及最近点位置。
 
-## read_abq.py
+## 
 
 将abq文件内的点坐标转化为numpy数组，以便于导入mpm求解器。
 
@@ -134,7 +134,15 @@ normal_indices：顶点法向量索引一维数组，每三个值表示一个三
 
 ## mpm_solver.py
 
+这个代码使用Large Modal Deformation Factory导出的abq文件，使用read_abq.py转化为.npy文件，然后转化为mpm粒子进行仿真。
+
+和上边的原因一样，因为taichi的field在定义时必须指定shape，但是有的时候我们可能一边运行一边添加新的粒子，这种情况就不能在初始时定义field长度。所以就指定了一个shape为len(.npy)长度的field，然后动态赋值给mpm里的particles。
+
 ### 方法及参数
+
+#### generate_bear()：将.npy转化为field后的粒子位置，赋值给流体粒子。
+
+在这个代码初始化的时候，创建了shape为len(.npy)长度的field，这里就是将这个field赋值给particles，从而进行仿真。
 
 #### init_bear(): 将通过abp文件生成的npy文件转化为taichi的field
 
@@ -143,3 +151,31 @@ normal_indices：顶点法向量索引一维数组，每三个值表示一个三
 #### run中将粒子不同的粒子分别导出到ply文件
 
 因为在使用houdini进行渲染时，同一种ply文件只能赋予相同材质，如果将流体和固体导入到同一个ply中，就不能分别渲染。
+
+# ReadObj
+
+将obj模型作为三角面片导入到mpm系统，进行最简单的碰撞检测。
+
+## collision_detection.py
+
+碰撞检测算法。我将模拟空间分割为grid_num ** 3 的网格，然后通过插值函数，判断粒子新的位置的SDF是否为负数，如果当前粒子所在网格的SDF为负数，表示粒子发生了碰撞，进行碰撞检测算法。
+
+#### init_collide_triangle(vertices_num, indices_num, normals_num, _normals_indices_num)
+
+初始化field的shape，将obj模型转化出来的顶点等信息，转化为taichi的field。
+
+因为不同模型的的经典信息不同，所以这里不在初始化的时候写field的shape，而是先解析obj文件，再根据解析出来的数组长度赋值。具体的文档在这里。
+
+[Fields (advanced) | Taichi Docs](https://docs.taichi.graphics/lang/articles/layout)
+
+这个方法一定要在程序操作field之前进行，因为如果taichi对field操作之后，无法再初始化或者创建新的field，也不能再修改field的shape.
+
+#### numpy_to_field(self, vertices, indices, normals, _normals_indices): 将.npy文件转化为field
+
+同样，必须在程序操作field之前进行。
+
+#### init_level_set()：初始化obj模型的level_set
+
+效率也很低，也是每个网格节点遍历每个粒子，好在只需要在程序初始化的时候执行一次，可以接受。
+
+由于obj模型内包含顶点法向量，所以当n.dot(node_pos - nearest_point)为负的时候，表明当前网格节点在模型内部，为正的时候表示当前网格节点在模型外部。从而判断SDF的正负。
