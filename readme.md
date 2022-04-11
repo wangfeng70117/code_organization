@@ -179,3 +179,15 @@ normal_indices：顶点法向量索引一维数组，每三个值表示一个三
 效率也很低，也是每个网格节点遍历每个粒子，好在只需要在程序初始化的时候执行一次，可以接受。
 
 由于obj模型内包含顶点法向量，所以当n.dot(node_pos - nearest_point)为负的时候，表明当前网格节点在模型内部，为正的时候表示当前网格节点在模型外部。从而判断SDF的正负。
+
+#### collision(position, velocity):碰撞检测算法
+
+如果发生碰撞，检测距离当前粒子最近的三角面，然后通过碰撞检测算法修改粒子的速度和位置。
+
+碰撞后的速度：new_vel = (velocity - (ti.dot(velocity, normal) * normal))
+
+我这里没有加速度衰减，如果需要衰减，成一个衰减系数就可以。
+
+而且我直接把法线方向的速度弄没了，如果需要，可以参考《Fluid Engine Development》这本书里有将，网上也有很多资料，很容易理解。
+
+#### linear_interpolation_sdf(pos): 线性插值函数
